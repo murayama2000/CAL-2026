@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026年度カレンダー</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            width: 14.28%; /* 7列均等 */
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .holiday {
+            background-color: red;
+            color: white;
+        }
+        .last-workday {
+            background-color: blue;
+            color: white;
+        }
+        .fifth-before-last-workday {
+            background-color: yellow;
+            color: black;
+}
+    </style>
+</head>
+<body>
+    <h1>2026年度カレンダー</h1>
+    <div id="calendar"></div>
+    
+    <script>
+        const holidays = new Set(
+            [
+  "2026-04-04", "2026-04-05", "2026-04-11", "2026-04-12", "2026-04-18",
+  "2026-04-19", "2026-04-25", "2026-04-26", "2026-04-29", "2026-04-30",
+
+  "2026-05-01", "2026-05-02", "2026-05-03", "2026-05-04", "2026-05-05",
+  "2026-05-06", "2026-05-09", "2026-05-10", "2026-05-16", "2026-05-17",
+  "2026-05-23", "2026-05-24", "2026-05-30", "2026-05-31",
+
+  "2026-06-06", "2026-06-07", "2026-06-13", "2026-06-14", "2026-06-20",
+  "2026-06-21", "2026-06-27", "2026-06-28",
+
+  "2026-07-04", "2026-07-05", "2026-07-11", "2026-07-12", "2026-07-18",
+  "2026-07-19", "2026-07-25", "2026-07-26",
+
+  "2026-08-01", "2026-08-02", "2026-08-08", "2026-08-09", "2026-08-10",
+  "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-15",
+  "2026-08-16", "2026-08-22", "2026-08-23", "2026-08-29", "2026-08-30",
+
+  "2026-09-05", "2026-09-06", "2026-09-12", "2026-09-13", "2026-09-19",
+  "2026-09-20", "2026-09-26", "2026-09-27",
+
+  "2026-10-03", "2026-10-04", "2026-10-10", "2026-10-11", "2026-10-17",
+  "2026-10-18", "2026-10-24", "2026-10-25", "2026-10-31",
+
+  "2026-11-01", "2026-11-07", "2026-11-08", "2026-11-14", "2026-11-15",
+  "2026-11-21", "2026-11-22", "2026-11-28", "2026-11-29",
+
+  "2026-12-05", "2026-12-06", "2026-12-12", "2026-12-13", "2026-12-19",
+  "2026-12-20", "2026-12-26", "2026-12-27", "2026-12-28", "2026-12-29",
+  "2026-12-30", "2026-12-31",
+
+  "2027-01-01", "2027-01-02", "2027-01-03", "2027-01-04", "2027-01-09",
+  "2027-01-10", "2027-01-16", "2027-01-17", "2027-01-23", "2027-01-24",
+  "2027-01-30", "2027-01-31",
+
+  "2027-02-06", "2027-02-07", "2027-02-13", "2027-02-14", "2027-02-20",
+  "2027-02-21", "2027-02-27", "2027-02-28",
+
+  "2027-03-06", "2027-03-07", "2027-03-13", "2027-03-14", "2027-03-20",
+  "2027-03-21", "2027-03-27", "2027-03-28"
+]
+
+        );
+        function toYmdLocal(dt) {
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const d = String(dt.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+
+        // function getLastWorkday(year, month) {
+        //     let lastDay = new Date(year, month, 0); // 月の最終日
+        //     let lastWorkday = lastDay.getDate(); // デフォルトは月末最終日
+
+        //     // 月末から逆順にチェック
+        //     for (let d = lastDay.getDate(); d > 0; d--) {
+        //         let currentDate = new Date(year, month - 1, d);
+        //         let formattedDate = currentDate.toISOString().split('T')[0];
+
+        //         if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6 && !holidays.has(formattedDate)) {
+        //             lastWorkday = d;
+        //             break;
+        //         }
+        //     }
+        //     return lastWorkday; // 最終稼働日を返す
+        // }
+
+        function getLastWorkdayDate(year, month) { // month: 1-12
+            const lastDay = new Date(year, month, 0);
+            for (let d = lastDay.getDate(); d > 0; d--) {
+                const dt = new Date(year, month - 1, d);
+                const key = toYmdLocal(dt);
+                const dow = dt.getDay();
+                if (dow !== 0 && dow !== 6 && !holidays.has(key)) {
+                return dt; // Date を返す
+                }
+            }
+            return null; // 全休の場合
+        }
+
+
+        function generateCalendar(startYear, startMonth, endYear, endMonth) {
+            const calendarDiv = document.getElementById("calendar");
+            calendarDiv.innerHTML = ''; // クリア
+
+            for (let y = startYear; y <= endYear; y++) {
+                for (let m = (y === startYear ? startMonth : 1); m <= (y === endYear ? endMonth : 12); m++) {
+                    let lastWorkdayDate = getLastWorkdayDate(y, m);
+                    console.log("month = " , m , "lastWorkday = " ,lastWorkdayDate);
+                    let firstDay = new Date(y, m - 1, 1);
+                    let lastDay = new Date(y, m, 0);
+                    
+                    let table = document.createElement('table');
+                    table.innerHTML = `<tr><th colspan="7">${y}年${m}月</th></tr>`;
+                    table.innerHTML += "<tr><th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th></tr>";
+
+                    let row = "<tr>";
+                    for (let i = 0; i < firstDay.getDay(); i++) {
+                        row += "<td></td>"; // 開始前の空白
+                    }
+
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const currentDateObj = new Date(y, m - 1, day);
+                const currentDate = `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                const isHoliday = holidays.has(currentDate);
+
+                const isLastWorkday =
+                    lastWorkdayDate &&
+                    currentDateObj.getFullYear() === lastWorkdayDate.getFullYear() &&
+                    currentDateObj.getMonth() === lastWorkdayDate.getMonth() &&
+                    currentDateObj.getDate() === lastWorkdayDate.getDate();
+
+                row += `<td class="${isHoliday ? "holiday" : isLastWorkday ? "last-workday" : ""}">${day}</td>`;
+
+                if (currentDateObj.getDay() === 6) {
+                    row += "</tr><tr>"; // 土曜日なら改行
+                }
+            }
+
+
+                    row += "</tr>"; // 最後の行を閉じる
+                    table.innerHTML += row;
+                    calendarDiv.appendChild(table);
+                }
+            }
+        }
+
+        generateCalendar(2026, 4, 2027, 3);
+    </script>
+</body>
+</html>
