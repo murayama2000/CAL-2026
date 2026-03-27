@@ -10,13 +10,7 @@
             width: 100%;
             margin-bottom: 20px;
         }
-        @media (max-width: 600px) {
-            th, td {
-                padding: 2px 4px;
-                height: 28px;
-                font-size: 12px;
-            }
-        }
+
 
         th, td {
             border: 1px solid #ccc;
@@ -24,9 +18,18 @@
             text-align: center;
             width: 14.28%; /* 7列均等 */
         }
+        
         th {
             background-color: #f4f4f4;
         }
+        @media (max-width: 600px) {
+            th, td {
+                padding: 2px 4px;
+                height: 28px;
+                font-size: 12px;
+            }
+        }
+        
         .holiday {
             background-color: red;
             color: white;
